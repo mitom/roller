@@ -21,37 +21,37 @@
 package internal
 
 import (
-	"fmt"
-	"os"
-	"os/user"
-	"path"
+    "fmt"
+    "os"
+    "os/user"
+    "path"
 )
 
 func ExitOnError(err error) {
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+    if err != nil {
+        fmt.Println(err)
+        os.Exit(1)
+    }
 }
 
 func ExitWithError(err string, code int) {
-	fmt.Println(err)
-	os.Exit(code)
+    fmt.Println(err)
+    os.Exit(code)
 }
 
 func PanicOnError(err error) {
-	if err != nil {
-		panic(err)
-	}
+    if err != nil {
+        panic(err)
+    }
 }
 
 func HomePath() (string) {
-	usr, err := user.Current()
-	ExitOnError(err)
-	return usr.HomeDir
+    usr, err := user.Current()
+    ExitOnError(err)
+    return usr.HomeDir
 }
 
 // Return the path to the base dir of the application config/cache
 func AppHomePath() (string) {
-	return path.Join(HomePath(), ".roller_go")
+    return path.Join(HomePath(), ".roller")
 }

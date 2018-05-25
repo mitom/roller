@@ -21,45 +21,45 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
+    "fmt"
+    "os"
 
-	"roller/internal"
+    "roller/internal"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+    "github.com/spf13/cobra"
+    "github.com/spf13/viper"
 )
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "roller",
-	Short: "Switch AWS roles easily in the CLI.",
+    Use:   "roller",
+    Short: "Switch AWS roles easily in the CLI.",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := RootCmd.Execute()
-	internal.ExitOnError(err)
+    err := RootCmd.Execute()
+    internal.ExitOnError(err)
 }
 
 func initConfig() {
-	// Search config in home directory with name ".cobra" (without extension).
-	viper.AddConfigPath(internal.AppHomePath())
-	viper.SetConfigName("config")
+    // Search config in home directory with name ".cobra" (without extension).
+    viper.AddConfigPath(internal.AppHomePath())
+    viper.SetConfigName("config")
 
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Can't read config: ", err)
-		os.Exit(1)
-	}
+    if err := viper.ReadInConfig(); err != nil {
+        fmt.Println("Can't read config: ", err)
+        os.Exit(1)
+    }
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-	cobra.OnInitialize(internal.LoadCache)
+    cobra.OnInitialize(initConfig)
+    cobra.OnInitialize(internal.LoadCache)
 
-	viper.SetEnvPrefix("roller")
-	viper.AutomaticEnv()
+    viper.SetEnvPrefix("roller")
+    viper.AutomaticEnv()
 }
 
 

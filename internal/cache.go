@@ -140,7 +140,9 @@ func LoadCache() {
 					current.Parameters.AccountId,
 					r.Parameters.AccountId)
 			} else {
-				results[name] = &r
+				//make a copy of the account as range reuses the memory for r
+				m := r
+				results[name] = &m
 			}
 		}
 	}

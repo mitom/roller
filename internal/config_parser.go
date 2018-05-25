@@ -30,7 +30,7 @@ import (
 
 
 type Profile struct {
-	Profile string `ini:"profile"`
+	Profile string `ini:"profile,omitempty"`
 	Account string `ini:"account"`
 	Role string `ini:"role"`
 	Region string `ini:"region,omitempty"`
@@ -58,6 +58,11 @@ func (p Profiles) Add(name string, profile *Profile) {
 	profile.Roller = true
 	section.ReflectFrom(profile)
 	p.Profiles[name] = profile
+}
+
+func (p Profiles) Update(name string, profile *Profile) {
+	section := p.data.Section("profile " + name)
+	section.ReflectFrom(profile)
 }
 
 func (p Profiles) Delete(name string) {

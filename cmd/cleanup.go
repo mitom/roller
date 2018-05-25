@@ -21,55 +21,55 @@
 package cmd
 
 import (
-	"roller/internal"
+    "roller/internal"
 
-	"github.com/spf13/cobra"
+    "github.com/spf13/cobra"
 
-	"time"
+    "time"
 )
 
 var includeNamed bool
 
 var cleanupCmd = &cobra.Command{
-	Use:   "cleanup",
-	Short: "Clean up the aws configuration files.",
-	Long: `Removes all credentials which were created 
-	by Roller and expired for over an hour. By default,
-	it will leave named profiles.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		profiles = internal.ReadProfiles()
-		credentials = internal.ReadCredentials()
-		limit := time.Now()
-		limit.Add(-60 * 60 * 1000 * 1000) // 1 hour in nanoseconds
+    Use:   "cleanup",
+    Short: "Clean up the aws configuration files.",
+    Long: `Removes all credentials which were created 
+    by Roller and expired for over an hour. By default,
+    it will leave named profiles.`,
+    Run: func(cmd *cobra.Command, args []string) {
+        profiles = internal.ReadProfiles()
+        credentials = internal.ReadCredentials()
+        limit := time.Now()
+        limit.Add(-60 * 60 * 1000 * 1000) // 1 hour in nanoseconds
 
-		dirty := false
+        dirty := false
 
-		for name, v := range credentials.Credentials {
-			profile, ok := profiles.Profiles[name]
+        for name, v := range credentials.Credentials {
+            profile, ok := profiles.Profiles[name]
 
-			// if it doesn't have a profile or not roller managed
-			// or not expired for over an hour yet, ignore it.
-			if !ok ||
-				!profile.Roller ||
-				limit.Before(v.Expiration) ||
-				(!includeNamed && name != profile.GenerateName()) {
-				continue
-			}
+            // if it doesn't have a profile or not roller managed
+            // or not expired for over an hour yet, ignore it.
+            if !ok ||
+                !profile.Roller ||
+                limit.Before(v.Expiration) ||
+                (!includeNamed && name != profile.GenerateName()) {
+                continue
+            }
 
-			credentials.Delete(name)
-			profiles.Delete(name)
+            credentials.Delete(name)
+            profiles.Delete(name)
 
-			dirty = true
-		}
+            dirty = true
+        }
 
-		if dirty {
-			profiles.Save()
-			credentials.Save()
-		}
-	},
+        if dirty {
+            profiles.Save()
+            credentials.Save()
+        }
+    },
 }
 
 func init() {
-	RootCmd.AddCommand(cleanupCmd)
-	cleanupCmd.Flags().BoolVar(&includeNamed, "include-named", false, "Include named profiles.")
+    RootCmd.AddCommand(cleanupCmd)
+    cleanupCmd.Flags().BoolVar(&includeNamed, "include-named", false, "Include named profiles.")
 }

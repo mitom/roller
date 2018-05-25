@@ -21,48 +21,48 @@
 package cmd
 
 import (
-	"bytes"
-	"fmt"
-	"html/template"
-	"os"
+    "bytes"
+    "fmt"
+    "html/template"
+    "os"
 
-	"roller/internal"
+    "roller/internal"
 
-	"github.com/spf13/cobra"
+    "github.com/spf13/cobra"
 )
 
 const ZSH = `export ROLLER_PATH='%s';
 
 function __roller_args {
-	case $line[1] in
-		switch|sw)
-			_arguments \
-				'*: :->roles' \
-				'-w: :->roles' \
-				'--web: :->roles' \
-				'-n: :->profiles' \
-				'--name: :->profiles' \
-				'-p: :->profiles' \
-				'--profile: :->profiles'
+    case $line[1] in
+        switch|sw)
+            _arguments \
+                '*: :->roles' \
+                '-w: :->roles' \
+                '--web: :->roles' \
+                '-n: :->profiles' \
+                '--name: :->profiles' \
+                '-p: :->profiles' \
+                '--profile: :->profiles'
 
-			case $state in
-				roles)
+            case $state in
+                roles)
                     local -a roles
                     roles=($(ROLLER_SHELL=true ${ROLLER_PATH} cache))
                     _multi_parts -M 'm:{a-z}={A-Z}' / roles
-					;;
-				profiles)
-					compadd $(grep profile ~/.aws/config|sed -e 's/.*profile \([a-zA-Z0-9_\-\/]*\).*/\1/')
-					;;
-		esac
-		;;
-	esac
+                    ;;
+                profiles)
+                    compadd $(grep profile ~/.aws/config|sed -e 's/.*profile \([a-zA-Z0-9_\-\/]*\).*/\1/')
+                    ;;
+        esac
+        ;;
+    esac
 };
 
 function __roller_autocomplete {
     _arguments \
-		'1: :__roller_cmds' \
-		'*: :__roller_args'
+        '1: :__roller_cmds' \
+        '*: :__roller_args'
 };
 
 function roller {
@@ -79,8 +79,8 @@ function roller {
 };
 
 function __roller_cmds {
-	local commands
-	commands=(%s)
+    local commands
+    commands=(%s)
     _describe 'roller' commands
 };
 
@@ -96,15 +96,15 @@ var initCmd = &cobra.Command{
     Short: "Set up the current shell.",
     Run: func(cmd *cobra.Command, args []string) {
         path, _ := os.Executable()
-		tmpl, err := template.New("cmds").Parse(COMMANDS_TEMPLATE)
-		internal.ExitOnError(err)
+        tmpl, err := template.New("cmds").Parse(COMMANDS_TEMPLATE)
+        internal.ExitOnError(err)
 
-		var cmds bytes.Buffer
+        var cmds bytes.Buffer
         tmpl.Execute(&cmds, RootCmd.Commands())
 
 
-		fmt.Printf(ZSH, path, cmds.String())
-	},
+        fmt.Printf(ZSH, path, cmds.String())
+    },
 }
 
 func init() {
