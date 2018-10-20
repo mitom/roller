@@ -25,6 +25,7 @@ import (
 
     "github.com/spf13/cobra"
 
+
     "time"
 )
 
@@ -43,7 +44,6 @@ var cleanupCmd = &cobra.Command{
         limit.Add(-60 * 60 * 1000 * 1000) // 1 hour in nanoseconds
 
         dirty := false
-
         for name, v := range credentials.Credentials {
             profile, ok := profiles.Profiles[name]
 
@@ -51,7 +51,7 @@ var cleanupCmd = &cobra.Command{
             // or not expired for over an hour yet, ignore it.
             if !ok ||
                 !profile.Roller ||
-                limit.Before(v.Expiration) ||
+                !v.Expiration.Before(limit) ||
                 (!includeNamed && name != profile.GenerateName()) {
                 continue
             }
