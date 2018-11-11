@@ -46,7 +46,6 @@ var accountID string
 var region string
 var role string
 var browser bool
-var nomfa bool
 
 var awsSession *session.Session
 var profiles *internal.Profiles
@@ -84,7 +83,6 @@ name (-n, --name) specified.`,
                 fromProfile,
                 accountID,
                 role,
-                !nomfa,
             }
         }
         if accountID == "" && role == "" && profileName == "" && len(args) == 0 && os.Getenv("ROLLER_ACTIVE_PROFILE") != "" {
@@ -106,7 +104,7 @@ name (-n, --name) specified.`,
             openBrowser()
         } else {
             needsRefresh := true
-            if !switchRoleParameters.Mfa {
+            if !profiles.Profiles[profileName].Roller {
                 needsRefresh = false
             } else {
                 creds, ok := credentials.Credentials[profileName]
@@ -133,7 +131,7 @@ name (-n, --name) specified.`,
                 credentials.Save()
             }
 
-            if needsRefresh || region != "" || !switchRoleParameters.Mfa {
+            if needsRefresh || region != "" {
                 profiles.Save()
             }
 
@@ -206,7 +204,7 @@ func syncNamedRoleParameters(name string) {
         p := internal.Profile{}
         syncParameters(&p)
         profiles.Add(name, &p)
-    } else {
+    } else if profile.Roller {
         syncParameters(profile)
         profiles.Update(name, profile)
     }
@@ -257,12 +255,6 @@ func syncParameters(profile *internal.Profile) {
     if region != "" {
         profile.Region = region
     }
-
-    if !switchRoleParameters.Mfa {
-        profile.Mfa = false
-    } else if !profile.Mfa {
-        switchRoleParameters.Mfa = false
-    }
 }
 
 func openBrowser() {
@@ -282,7 +274,6 @@ func init() {
     switchCmd.Flags().StringVar(&accountID, "account", "", "The account id to switch to.")
     switchCmd.Flags().StringVar(&role, "role", "", "The AWS role name to switch to.")
     switchCmd.Flags().BoolVarP(&browser, "web", "w", false, "Open a browser tab to switch to the role.")
-    switchCmd.Flags().BoolVar(&nomfa, "no-mfa", false, "Whether this role requires Mfa or not.")
 
     RootCmd.AddCommand(switchCmd)
     viper.SetDefault("profile", "default")

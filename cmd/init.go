@@ -52,7 +52,7 @@ function __roller_args {
                     _multi_parts -M 'm:{a-z}={A-Z}' / roles
                     ;;
                 profiles)
-                    compadd $(grep profile ~/.aws/config|sed -e 's/.*profile \([a-zA-Z0-9_\-\/]*\).*/\1/')
+                    compadd $(grep "\[profile .*\]" ~/.aws/config |sed -e 's/\[profile \([a-zA-Z0-9_\.\/\-]*\)\]/\1/')
                     ;;
         esac
         ;;

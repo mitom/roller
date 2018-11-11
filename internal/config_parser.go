@@ -30,12 +30,11 @@ import (
 
 
 type Profile struct {
-    Profile string `ini:"profile,omitempty"`
-    Account string `ini:"account"`
-    Role string `ini:"role"`
+    Profile string `ini:"roller_profile,omitempty"`
+    Account string `ini:"roller_account"`
+    Role string `ini:"roller_role"`
     Region string `ini:"region,omitempty"`
     Roller bool `ini:"roller"`
-    Mfa bool `ini:"mfa,omitempty"`
 }
 
 func (p Profile) GenerateName() string {
