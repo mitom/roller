@@ -21,37 +21,37 @@
 package cmd
 
 import (
-    "fmt"
-    "path"
+	"fmt"
+	"path"
 
-    "roller/internal"
+	"roller/internal"
 
-    "github.com/spf13/cobra"
-    "github.com/spf13/viper"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var cacheCmd = &cobra.Command{
-    Use:   "cache",
-    Short: "Dump the account cache.",
-    Run: func(cmd *cobra.Command, args []string) {
-        for k := range internal.AccountCache {
-            fmt.Println(k)
-        }
-    },
+	Use:   "cache",
+	Short: "Dump the account cache.",
+	Run: func(cmd *cobra.Command, args []string) {
+		for k := range internal.AccountCache {
+			fmt.Println(k)
+		}
+	},
 }
 
 var cacheClearCmd = &cobra.Command{
-    Use:   "clear",
-    Short: "Clear the account cache.",
-    Run: func(cmd *cobra.Command, args []string) {
-        internal.ClearCache()
-    },
+	Use:   "clear",
+	Short: "Clear the account cache.",
+	Run: func(cmd *cobra.Command, args []string) {
+		internal.ClearCache()
+	},
 }
 
 func init() {
-    RootCmd.AddCommand(cacheCmd)
-    cacheCmd.Flags().Bool("shell", false, "Avoid printing warnings.")
-    cacheCmd.AddCommand(cacheClearCmd)
-    viper.SetDefault("plugin_dir", path.Join(internal.AppHomePath(), "plugins"))
-    viper.SetDefault("cache_dir", path.Join(internal.AppHomePath(), "cache"))
+	RootCmd.AddCommand(cacheCmd)
+	cacheCmd.Flags().Bool("shell", false, "Avoid printing warnings.")
+	cacheCmd.AddCommand(cacheClearCmd)
+	viper.SetDefault("plugin_dir", path.Join(internal.AppHomePath(), "plugins"))
+	viper.SetDefault("cache_dir", path.Join(internal.AppHomePath(), "cache"))
 }

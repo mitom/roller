@@ -21,14 +21,14 @@
 package cmd
 
 import (
-    "bytes"
-    "fmt"
-    "html/template"
-    "os"
+	"bytes"
+	"fmt"
+	"html/template"
+	"os"
 
-    "roller/internal"
+	"roller/internal"
 
-    "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 )
 
 const ZSH = `export ROLLER_PATH='%s';
@@ -92,21 +92,20 @@ const COMMANDS_TEMPLATE = `{{ range . }}
 {{- end }}`
 
 var initCmd = &cobra.Command{
-    Use:   "init",
-    Short: "Set up the current shell.",
-    Run: func(cmd *cobra.Command, args []string) {
-        path, _ := os.Executable()
-        tmpl, err := template.New("cmds").Parse(COMMANDS_TEMPLATE)
-        internal.ExitOnError(err)
+	Use:   "init",
+	Short: "Set up the current shell.",
+	Run: func(cmd *cobra.Command, args []string) {
+		path, _ := os.Executable()
+		tmpl, err := template.New("cmds").Parse(COMMANDS_TEMPLATE)
+		internal.ExitOnError(err)
 
-        var cmds bytes.Buffer
-        tmpl.Execute(&cmds, RootCmd.Commands())
+		var cmds bytes.Buffer
+		tmpl.Execute(&cmds, RootCmd.Commands())
 
-
-        fmt.Printf(ZSH, path, cmds.String())
-    },
+		fmt.Printf(ZSH, path, cmds.String())
+	},
 }
 
 func init() {
-    RootCmd.AddCommand(initCmd)
+	RootCmd.AddCommand(initCmd)
 }
