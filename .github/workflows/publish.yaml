@@ -1,8 +1,9 @@
 name: Publish
 
-push:
-  tags:
-  - 'v*'
+on:
+  push:
+    tags:
+    - 'v*'
 
 jobs:
   publish:
