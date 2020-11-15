@@ -16,11 +16,11 @@ jobs:
       - name: Build darwin
         uses: cedrickring/golang-action@1.6.0
         with:
-          args: make darwin
+          args: make build-darwin
       - name: Build linux
         uses: cedrickring/golang-action@1.6.0
         with:
-          args: make linux
+          args: make build-linux
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
