@@ -54,6 +54,19 @@ or replaced with a differently named role as everyone would have to update their
 - launch a new shell and try to assume a role with `roller sw <tab><tab>` to see all the loaded accounts autocompleted.
 
 
+## Example use
+
+For the sake of these let's assume there is a role named `acc/role` loaded
+
+- Assume a role: `roller sw acc/role`
+- Open the switch role page in your browser `roller sw -w acc/role`
+- Open the switch role page in your browser for the current role: `roller sw -w`
+- Assume a role and give it an alias: `roller sw -n foo acc/role`
+- Refresh your role _if needed_: `roller sw`
+- List all roles loaded: `roller cache`
+- Remove all expired sessions from the aws credentials file: `roller cleanup`
+
+
 Roller has 2 ways of functioning:
 
 1. The first one is essentially just providing all the information needed to switch to a role (account id and role name). This is not much benefit by itself.
