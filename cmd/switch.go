@@ -46,13 +46,12 @@ var accountID string
 var region string
 var role string
 var browser bool
+var ttl string
 
 var awsSession *session.Session
 var profiles *internal.Profiles
 var credentials *internal.Credentials
 var switchRoleParameters *pkg.SwitchRoleParameters
-
-const tokenLifetime = 3600
 
 // switchCmd represents the switch command
 var switchCmd = &cobra.Command{
@@ -74,15 +73,28 @@ var switchCmd = &cobra.Command{
 	Long: `Create a set of temporary credentials using STS and store them amongst the default AWS configurations.
 After the credentials were created successfully, they can be used in the same way as any other AWS profile by the
 name (-n, --name) specified.`,
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		keys := make([]string, 0, len(internal.AccountCache))
+
+		for k := range internal.AccountCache {
+			keys = append(keys, k)
+		}
+
+		return keys, cobra.ShellCompDirectiveNoFileComp
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 0 {
 			switchRoleParameters = &internal.AccountCache[args[0]].Parameters
 			profileName = args[0]
+			if ttl != "" {
+				switchRoleParameters.TTL = ttl
+			}
 		} else {
 			switchRoleParameters = &pkg.SwitchRoleParameters{
 				FromProfile: fromProfile,
-				AccountId:   accountID,
+				AccountID:   accountID,
 				Role:        role,
+				TTL:         ttl,
 			}
 		}
 		if accountID == "" && role == "" && profileName == "" && len(args) == 0 && os.Getenv("ROLLER_ACTIVE_PROFILE") != "" {
@@ -181,17 +193,22 @@ func currentAccount() (string, string) {
 
 func switchTo(role pkg.SwitchRoleParameters) *sts.Credentials {
 	currentAccountID, username := currentAccount()
+	tokenDuration, err := time.ParseDuration(role.TTL)
+	if err != nil {
+		tokenDuration, _ = time.ParseDuration("1h")
+	}
+
 	svc := sts.New(createSession())
 
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("Enter your MFA for %s for your %s profile: \n", username, role.FromProfile)
 	mfa, _ := reader.ReadString('\n')
 	result, err := svc.AssumeRole(&sts.AssumeRoleInput{
-		RoleArn:         aws.String(fmt.Sprintf("arn:aws:iam::%s:role/%s", role.AccountId, role.Role)),
+		RoleArn:         aws.String(fmt.Sprintf("arn:aws:iam::%s:role/%s", role.AccountID, role.Role)),
 		RoleSessionName: aws.String(username),
 		SerialNumber:    aws.String(fmt.Sprintf("arn:aws:iam::%s:mfa/%s", currentAccountID, username)),
 		TokenCode:       aws.String(strings.Trim(mfa, "\n")),
-		DurationSeconds: aws.Int64(tokenLifetime),
+		DurationSeconds: aws.Int64(int64(tokenDuration.Seconds())),
 	})
 	internal.ExitOnError(err)
 
@@ -208,7 +225,7 @@ func syncNamedRoleParameters(name string) {
 		syncParameters(profile)
 		profiles.Update(name, profile)
 	} else if profile.RoleArn != "" {
-		switchRoleParameters.AccountId, switchRoleParameters.Role = profile.ParseRoleArn()
+		switchRoleParameters.AccountID, switchRoleParameters.Role = profile.ParseRoleArn()
 	}
 }
 
@@ -228,16 +245,16 @@ func syncParameters(profile *internal.Profile) {
 		switchRoleParameters.FromProfile = viper.GetString("profile")
 	}
 
-	if switchRoleParameters.AccountId != "" {
-		profile.Account = switchRoleParameters.AccountId
+	if switchRoleParameters.AccountID != "" {
+		profile.Account = switchRoleParameters.AccountID
 	} else if profile.Account != "" {
-		switchRoleParameters.AccountId = profile.Account
+		switchRoleParameters.AccountID = profile.Account
 	} else {
 		reader := bufio.NewReader(os.Stdin)
 		fmt.Println("AWS account ID you want to switch to: ")
 		input, _ := reader.ReadString('\n')
 		input = strings.Trim(input, "\n")
-		switchRoleParameters.AccountId = input
+		switchRoleParameters.AccountID = input
 		profile.Account = input
 	}
 
@@ -254,6 +271,12 @@ func syncParameters(profile *internal.Profile) {
 		profile.Role = input
 	}
 
+	if switchRoleParameters.TTL != "" {
+		profile.TTL = switchRoleParameters.TTL
+	} else if profile.TTL != "" {
+		switchRoleParameters.TTL = profile.TTL
+	}
+
 	if region != "" {
 		profile.Region = region
 	}
@@ -261,7 +284,7 @@ func syncParameters(profile *internal.Profile) {
 
 func openBrowser() {
 	url := fmt.Sprintf("https://signin.aws.amazon.com/switchrole?account=%s&roleName=%s&displayName=%s",
-		switchRoleParameters.AccountId,
+		switchRoleParameters.AccountID,
 		switchRoleParameters.Role,
 		profileName,
 	)
@@ -275,8 +298,18 @@ func init() {
 	switchCmd.Flags().StringVar(&region, "region", "", "The default region to set for the role.")
 	switchCmd.Flags().StringVar(&accountID, "account", "", "The account id to switch to.")
 	switchCmd.Flags().StringVar(&role, "role", "", "The AWS role name to switch to.")
+	switchCmd.Flags().StringVar(&ttl, "ttl", "", "The session duration to request when assuming the role.")
 	switchCmd.Flags().BoolVarP(&browser, "web", "w", false, "Open a browser tab to switch to the role.")
 
+	switchCmd.RegisterFlagCompletionFunc("name", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		profiles := internal.ReadProfiles()
+		keys := make([]string, 0, len(profiles.Profiles))
+
+		for k := range profiles.Profiles {
+			keys = append(keys, k)
+		}
+		return keys, cobra.ShellCompDirectiveNoFileComp
+	})
 	RootCmd.AddCommand(switchCmd)
 	viper.SetDefault("profile", "default")
 }

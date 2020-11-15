@@ -21,88 +21,36 @@
 package cmd
 
 import (
-	"bytes"
 	"fmt"
-	"html/template"
 	"os"
-
-	"github.com/mitom/roller/internal"
 
 	"github.com/spf13/cobra"
 )
 
-const ZSH = `export ROLLER_PATH='%s';
-
-function __roller_args {
-    case $line[1] in
-        switch|sw)
-            _arguments \
-                '*: :->roles' \
-                '-w: :->roles' \
-                '--web: :->roles' \
-                '-n: :->profiles' \
-                '--name: :->profiles' \
-                '-p: :->profiles' \
-                '--profile: :->profiles'
-
-            case $state in
-                roles)
-                    local -a roles
-                    roles=($(ROLLER_SHELL=true ${ROLLER_PATH} cache))
-                    _multi_parts -M 'm:{a-z}={A-Z}' / roles
-                    ;;
-                profiles)
-                    compadd $(grep "\[profile .*\]" ~/.aws/config |sed -e 's/\[profile \([a-zA-Z0-9_\.\/\-]*\)\]/\1/')
-                    ;;
-        esac
-        ;;
-    esac
-};
-
-function __roller_autocomplete {
-    _arguments \
-        '1: :__roller_cmds' \
-        '*: :__roller_args'
-};
+const shellInit = `
+export ROLLER_PATH='%s';
 
 function roller {
     ROLLER_SHELL=true ${ROLLER_PATH} "$@" | {
-      while IFS= read -r line
+      while IFS= read -r line;
       do
         if [[ "$line" == export\ * ]]; then
-            eval "$line"
+            eval "$line";
         else
-            echo "$line"
-        fi
+            echo "$line";
+        fi;
       done
     }
 };
-
-function __roller_cmds {
-    local commands
-    commands=(%s)
-    _describe 'roller' commands
-};
-
-compdef __roller_autocomplete roller;
 `
-
-const COMMANDS_TEMPLATE = `{{ range . }}
-'{{ .Name }}:{{ .Short }}'
-{{- end }}`
 
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Set up the current shell.",
 	Run: func(cmd *cobra.Command, args []string) {
 		path, _ := os.Executable()
-		tmpl, err := template.New("cmds").Parse(COMMANDS_TEMPLATE)
-		internal.ExitOnError(err)
 
-		var cmds bytes.Buffer
-		tmpl.Execute(&cmds, RootCmd.Commands())
-
-		fmt.Printf(ZSH, path, cmds.String())
+		fmt.Printf(shellInit, path)
 	},
 }
 

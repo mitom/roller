@@ -22,12 +22,10 @@ package cmd
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/mitom/roller/internal"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var cacheCmd = &cobra.Command{
@@ -52,7 +50,5 @@ func init() {
 	RootCmd.AddCommand(cacheCmd)
 	cacheCmd.Flags().Bool("shell", false, "Avoid printing warnings.")
 	cacheCmd.AddCommand(cacheClearCmd)
-	viper.SetDefault("plugin_dir", path.Join(internal.AppHomePath(), "plugins"))
-	viper.SetDefault("cache_dir", path.Join(internal.AppHomePath(), "cache"))
-	viper.SetDefault("cache", map[string]interface{}{})
+
 }

@@ -30,25 +30,26 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/mitom/roller/internal/csv_loader"
 	"github.com/mitom/roller/pkg"
 
 	"github.com/spf13/viper"
 )
 
-var AccountCache map[string]*pkg.CachedProfile
+var AccountCache map[string]*pkg.LoadedProfile
 var nameReplaceRe = regexp.MustCompile(`[^\d\w\-]`)
 
 type SerialisedCache struct {
 	ValidUntil time.Time
-	Data       *[]pkg.CachedProfile
+	Data       *[]pkg.LoadedProfile
 }
 
-func createCacheConfig(name string, givenConfig interface{}) *pkg.CacheConfig {
+func createLoaderConfig(name string, givenConfig interface{}) *pkg.LoaderConfig {
 	cf := givenConfig.(map[string]interface{})
 
-	pluginPath, ok := cf["plugin"].(string)
+	loader, ok := cf["loader"].(string)
 	if !ok {
-		ExitWithError(fmt.Sprintf("Invalid value for plugin: %s", cf["plugin"]), 1)
+		ExitWithError(fmt.Sprintf("Invalid value for loader: %s", cf["loader"]), 1)
 	}
 	options, ok := cf["options"].(map[string]interface{})
 	if !ok {
@@ -59,7 +60,7 @@ func createCacheConfig(name string, givenConfig interface{}) *pkg.CacheConfig {
 		ExitWithError(fmt.Sprintf("Invalid value for ttl: %s", cf["ttl"]), 1)
 	}
 
-	return pkg.NewCacheConfig(name, pluginPath, options, ttl)
+	return pkg.NewLoaderConfig(name, loader, options, ttl)
 }
 
 func ClearCache() {
@@ -67,15 +68,14 @@ func ClearCache() {
 }
 
 func LoadCache() {
-	pluginPath := viper.GetString("plugin_dir")
-	results := make(map[string]*pkg.CachedProfile)
-	givenConfig := viper.Get("cache")
+	results := make(map[string]*pkg.LoadedProfile)
+	givenConfig := viper.Get("loader")
 	configs := givenConfig.(map[string]interface{})
 	now := time.Now()
 	os.Mkdir(viper.GetString("cache_dir"), 0700)
 	for cacheName, c := range configs {
-		cfg := createCacheConfig(cacheName, c)
-		var loaded *[]pkg.CachedProfile
+		cfg := createLoaderConfig(cacheName, c)
+		var loaded *[]pkg.LoadedProfile
 		if cfg.GetTtl() > 0 {
 			read, _ := ioutil.ReadFile(path.Join(viper.GetString("cache_dir"), cfg.GetName()+".json"))
 			if read != nil {
@@ -88,19 +88,26 @@ func LoadCache() {
 			}
 		}
 		if loaded == nil {
-			modulePath := path.Join(pluginPath, cfg.GetPlugin())
-			plug, err := plugin.Open(modulePath)
-			ExitOnError(err)
+			var loader pkg.Loader
+			if cfg.GetLoader() == "csv" {
+				loader = csv_loader.Loader
+			} else {
+				pluginPath := viper.GetString("plugin_dir")
 
-			// LoadCache the module
-			symLoader, err := plug.Lookup("Loader")
-			ExitOnError(err)
+				modulePath := path.Join(pluginPath, cfg.GetLoader())
+				plug, err := plugin.Open(modulePath)
+				ExitOnError(err)
 
-			// Assert that the interface is implemented
-			var loader pkg.CacheLoader
-			loader, ok := symLoader.(pkg.CacheLoader)
-			if !ok {
-				ExitWithError(fmt.Sprintf("%s is either outdated or invalid! Make sure it implements the proper interface.\n", pluginPath), 1)
+				// LoadCache the module
+				symLoader, err := plug.Lookup("Loader")
+				ExitOnError(err)
+
+				// Assert that the interface is implemented
+				var ok bool
+				loader, ok = symLoader.(pkg.Loader)
+				if !ok {
+					ExitWithError(fmt.Sprintf("%s is either outdated or invalid! Make sure it implements the proper interface.\n", pluginPath), 1)
+				}
 			}
 
 			l := loader.Load(cfg)
@@ -133,12 +140,12 @@ func LoadCache() {
 			name += "/" + r.Parameters.Role
 			current, exists := results[name]
 
-			if exists && !viper.GetBool("shell") && current.Parameters.AccountId != r.Parameters.AccountId {
+			if exists && !viper.GetBool("shell") && current.Parameters.AccountID != r.Parameters.AccountID {
 				fmt.Fprintf(os.Stderr,
 					"There is an account ID mismatch between 2 loaders for %s. Already had %s, ignoring %s.\n",
 					name,
-					current.Parameters.AccountId,
-					r.Parameters.AccountId)
+					current.Parameters.AccountID,
+					r.Parameters.AccountID)
 			} else {
 				//make a copy of the account as range reuses the memory for r
 				m := r

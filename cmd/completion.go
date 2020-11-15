@@ -18,58 +18,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package pkg
+package cmd
 
-type CacheLoader interface {
-	Load(config *CacheConfig) []CachedProfile
+import (
+	"os"
+
+	"github.com/spf13/cobra"
+)
+
+
+var completionCmd = &cobra.Command{
+	Use:       "completion",
+	Short:     "Set up the current shell.",
+	ValidArgs: []string{"bash", "zsh"},
+	Args:      cobra.ExactValidArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+
+		switch args[0] {
+		case "bash":
+			cmd.Root().GenBashCompletion(os.Stdout)
+		case "zsh":
+			cmd.Root().GenZshCompletion(os.Stdout)
+		}
+	},
 }
 
-type SwitchRoleParameters struct {
-	FromProfile string
-	AccountId   string
-	Role        string
-}
-
-func (p SwitchRoleParameters) Valid() bool {
-	return true
-}
-
-type CachedProfile struct {
-	Name       string
-	Parameters SwitchRoleParameters
-}
-
-type CacheConfig struct {
-	name    string
-	options map[string]interface{}
-	ttl     int
-	plugin  string
-}
-
-func (c CacheConfig) GetOptions() map[string]interface{} {
-	return c.options
-}
-
-func (c CacheConfig) GetName() string {
-	return c.name
-}
-
-func (c CacheConfig) GetTtl() int {
-	return c.ttl
-}
-
-func (c CacheConfig) GetPlugin() string {
-	return c.plugin
-}
-
-func NewCacheConfig(name string, pluginPath string, options map[string]interface{}, ttl int) *CacheConfig {
-
-	c := CacheConfig{
-		name:    name,
-		plugin:  pluginPath,
-		ttl:     ttl,
-		options: options,
-	}
-
-	return &c
+func init() {
+	RootCmd.AddCommand(completionCmd)
 }

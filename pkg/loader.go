@@ -18,23 +18,58 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package cmd
+package pkg
 
-import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-)
-
-// versionCmd represents the version command
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print the version number.",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("vx.x.x")
-	},
+type Loader interface {
+	Load(config *LoaderConfig) []LoadedProfile
 }
 
-func init() {
-	RootCmd.AddCommand(versionCmd)
+type SwitchRoleParameters struct {
+	FromProfile string
+	AccountID   string
+	Role        string
+	TTL         string
+}
+
+func (p SwitchRoleParameters) Valid() bool {
+	return true
+}
+
+type LoadedProfile struct {
+	Name       string
+	Parameters SwitchRoleParameters
+}
+
+type LoaderConfig struct {
+	name    string
+	options map[string]interface{}
+	ttl     int
+	loader  string
+}
+
+func (c LoaderConfig) GetOptions() map[string]interface{} {
+	return c.options
+}
+
+func (c LoaderConfig) GetName() string {
+	return c.name
+}
+
+func (c LoaderConfig) GetTtl() int {
+	return c.ttl
+}
+
+func (c LoaderConfig) GetLoader() string {
+	return c.loader
+}
+
+func NewLoaderConfig(name string, loader string, options map[string]interface{}, ttl int) *LoaderConfig {
+	c := LoaderConfig{
+		name:    name,
+		loader:  loader,
+		ttl:     ttl,
+		options: options,
+	}
+
+	return &c
 }

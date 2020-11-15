@@ -16,6 +16,44 @@ The idea being that the roles are distributed to people in some form, but they w
 When it comes to 20+ roles, this may take some time when a new member joins the team. It can also get hard to keep up with new roles being added
 or replaced with a differently named role as everyone would have to update their profiles individually.
 
+
+
+## Setup
+
+- Download the binary for your OS from the releases and put it on your `PATH`
+- Depending on your shell set up your rc file:
+  - zsh:
+    ```
+    # ~/.zshrc
+    roller completion zsh > "${fpath[1]}/_roller"
+    eval $(roller init)
+    ```
+  - bash:
+    ```
+    # ~/.bashrc
+    source <(roller completion bash)
+    eval $(roller init)
+    ```
+- Configure a loader. Only a CSV loader is included, however loaders can be paths to Go plugins.
+   ```
+   # ~/.roller/config.yaml
+   loader:
+     my-loader:
+       loader: csv
+       ttl: 0
+       options:
+       path: ~/my-accounts.csv
+   ```
+- Create the source for the csv loader:
+  ```
+  <accountname>,<accountid>,<rolename>,<sessionduration>
+  <accountname2>,<accountid2>,<rolename>,<sessionduration>
+  <accountname>,<accountid>,<rolename2>,<sessionduration>
+  ...
+  ```
+- launch a new shell and try to assume a role with `roller sw <tab><tab>` to see all the loaded accounts autocompleted.
+
+
 Roller has 2 ways of functioning:
 
 1. The first one is essentially just providing all the information needed to switch to a role (account id and role name). This is not much benefit by itself.

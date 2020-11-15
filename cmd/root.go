@@ -23,6 +23,8 @@ package cmd
 import (
 	"github.com/mitom/roller/internal"
 
+	"path"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -54,4 +56,7 @@ func init() {
 
 	viper.SetEnvPrefix("roller")
 	viper.AutomaticEnv()
+	viper.SetDefault("plugin_dir", path.Join(internal.AppHomePath(), "plugins"))
+	viper.SetDefault("cache_dir", path.Join(internal.AppHomePath(), "cache"))
+	viper.SetDefault("loader", map[string]interface{}{})
 }

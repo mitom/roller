@@ -1,0 +1,51 @@
+name: Publish
+
+push:
+  tags:
+  - 'v*'
+
+jobs:
+  publish:
+    name: Build and publish
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - run: sed -i s/vx.x.x/${GITHUB_REF#refs/*/}/g cmd/version.go
+      - name: Build darwin
+        uses: cedrickring/golang-action@1.6.0
+        with:
+          args: make darwin
+      - name: Build linux
+        uses: cedrickring/golang-action@1.6.0
+        with:
+          args: make linux
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload darwin bin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/darwin/roller
+          asset_name: roller-darwin
+          asset_content_type: application/binary
+      - name: Upload linux bin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/linux/roller
+          asset_name: roller-linux
+          asset_content_type: application/binary
