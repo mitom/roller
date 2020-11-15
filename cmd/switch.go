@@ -28,8 +28,8 @@ import (
 	"strings"
 	"time"
 
-	"roller/internal"
-	"roller/pkg"
+	"github.com/mitom/roller/internal"
+	"github.com/mitom/roller/pkg"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -80,9 +80,9 @@ name (-n, --name) specified.`,
 			profileName = args[0]
 		} else {
 			switchRoleParameters = &pkg.SwitchRoleParameters{
-				fromProfile,
-				accountID,
-				role,
+				FromProfile: fromProfile,
+				AccountId:   accountID,
+				Role:        role,
 			}
 		}
 		if accountID == "" && role == "" && profileName == "" && len(args) == 0 && os.Getenv("ROLLER_ACTIVE_PROFILE") != "" {
@@ -228,7 +228,6 @@ func syncParameters(profile *internal.Profile) {
 		switchRoleParameters.FromProfile = viper.GetString("profile")
 	}
 
-	fmt.Println(switchRoleParameters)
 	if switchRoleParameters.AccountId != "" {
 		profile.Account = switchRoleParameters.AccountId
 	} else if profile.Account != "" {

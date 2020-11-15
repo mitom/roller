@@ -21,10 +21,7 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
-	"roller/internal"
+	"github.com/mitom/roller/internal"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -48,10 +45,7 @@ func initConfig() {
 	viper.AddConfigPath(internal.AppHomePath())
 	viper.SetConfigName("config")
 
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Can't read config: ", err)
-		os.Exit(1)
-	}
+	viper.ReadInConfig()
 }
 
 func init() {

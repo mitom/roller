@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"path"
 
-	"roller/internal"
+	"github.com/mitom/roller/internal"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -54,4 +54,5 @@ func init() {
 	cacheCmd.AddCommand(cacheClearCmd)
 	viper.SetDefault("plugin_dir", path.Join(internal.AppHomePath(), "plugins"))
 	viper.SetDefault("cache_dir", path.Join(internal.AppHomePath(), "cache"))
+	viper.SetDefault("cache", map[string]interface{}{})
 }

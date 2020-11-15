@@ -20,8 +20,8 @@
 
 package main
 
- import "roller/cmd"
+import "github.com/mitom/roller/cmd"
 
- func main() {
- 	cmd.Execute()
- }
+func main() {
+	cmd.Execute()
+}

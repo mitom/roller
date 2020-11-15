@@ -36,7 +36,7 @@ type Profile struct {
 	Role    string `ini:"roller_role"`
 	Region  string `ini:"region,omitempty"`
 	Roller  bool   `ini:"roller"`
-	RoleArn string `ini:"role_arn",omitempty`
+	RoleArn string `ini:"role_arn,omitempty"`
 }
 
 func (p Profile) GenerateName() string {

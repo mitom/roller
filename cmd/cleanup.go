@@ -21,7 +21,7 @@
 package cmd
 
 import (
-	"roller/internal"
+	"github.com/mitom/roller/internal"
 
 	"github.com/spf13/cobra"
 

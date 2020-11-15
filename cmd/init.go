@@ -26,7 +26,7 @@ import (
 	"html/template"
 	"os"
 
-	"roller/internal"
+	"github.com/mitom/roller/internal"
 
 	"github.com/spf13/cobra"
 )

@@ -30,7 +30,7 @@ import (
 	"regexp"
 	"time"
 
-	"roller/pkg"
+	"github.com/mitom/roller/pkg"
 
 	"github.com/spf13/viper"
 )
