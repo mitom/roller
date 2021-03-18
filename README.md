@@ -20,7 +20,7 @@ or replaced with a differently named role as everyone would have to update their
 
 ## Setup
 
-- Download the binary for your OS from the releases and put it on your `PATH`
+- Download the [binary](https://github.com/mitom/roller/releases) for your OS and put it on your `PATH` (make sure to rename it to `roller`!)
 - Depending on your shell set up your rc file:
   - zsh:
     ```
